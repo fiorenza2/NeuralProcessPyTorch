@@ -1,9 +1,9 @@
-import numpy as np
 import torch
 import torch.nn as nn
 
 class NeuralProcess(nn.Module):
     def __init__(self, x_dim, y_dim, z_dim, r_dim, s_dim, width=200):
+        super(NeuralProcess, self).__init__()
         self.det_encoder = self.build_encoder(x_dim+y_dim, r_dim, width)
         self.stoch_encoder = self.build_encoder(x_dim+y_dim, r_dim, width)
         self.aggregator = self.build_aggregator()
@@ -18,7 +18,7 @@ class NeuralProcess(nn.Module):
         s = self.aggregator(s)
         z_mu = self.mu_layer(s)
         z_sigma = self.sigma_layer(s)
-        z = torch.randn() * z_sigma + z_mu
+        z = torch.randn(s.size) * z_sigma + z_mu
         num_target_points = x_target.shape[0]
         y = self.decoder(torch.cat((x_target, z.repeat(num_target_points), r.repeat(num_target_points))))
         return y
@@ -40,3 +40,6 @@ class NeuralProcess(nn.Module):
             nn.ReLU(),
             nn.Linear(hid_dim, out_dim)
         )
+
+def NeuralProcessLoss(y_pred, y_actual):
+    
