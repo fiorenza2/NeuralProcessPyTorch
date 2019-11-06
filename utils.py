@@ -4,16 +4,16 @@ from sklearn.model_selection import train_test_split
 
 class GPDataGenerator():
     
-    def __init__(self, num_funcs=30, seed=1234):
+    def __init__(self, num_funcs: int=30, seed: int=1234):
         self.num_funcs = num_funcs
         self.f = gaussian_process.GaussianProcessRegressor()
         self.x_grid = np.linspace(-3, 3, 100)
         self.y_grid = self.f.sample_y(self.x_grid.reshape(-1, 1), self.num_funcs, seed)
     
-    def return_y_eval(self, x_eval, y_index):
+    def return_y_eval(self, x_eval: np.array, y_index: int):
         return np.interp(x_eval, self.x_grid, self.y_grid[:, y_index]).reshape(-1)
     
-    def create_training_set(self, num_points=30, test_split=0.2):
+    def create_training_set(self, num_points: int=30, test_split: float=0.2):
         x_context = []
         y_context = []
         x_target = []

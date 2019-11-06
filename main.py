@@ -6,13 +6,10 @@ import torch.nn as nn
 from model import NeuralProcess, NeuralProcessLoss
 from utils import GPDataGenerator
 
-def main():
-    num_epochs = 100
-
+def train(num_epochs: int, neural_process: NeuralProcess):
     gp_data_generator = GPDataGenerator()
     x_context, x_target, y_context, y_target = gp_data_generator.create_training_set()
 
-    neural_process = NeuralProcess(1, 1, 10, 10, 10, width=200)
     optimizer = torch.optim.Adam(neural_process.parameters(), lr=1e-3)
 
     neural_process.train()
@@ -31,6 +28,16 @@ def main():
             optimizer.step()
         print('Epoch:{} Loss: {:.4f} Acc: {:.4f}'.format(
                 i, epoch_loss, epoch_mse))
+    
+    neural_process.eval()
+
+    return neural_process, gp_data_generator
+
+def main():
+    num_epochs = 100
+    neural_process = NeuralProcess(1, 1, 10, 10, 10, width=200)
+    neural_process, gp_data_generator = train(num_epochs, neural_process)
 
 if __name__ == "__main__":
     main()
+    

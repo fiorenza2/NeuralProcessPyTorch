@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 class NeuralProcess(nn.Module):
-    def __init__(self, x_dim, y_dim, z_dim, r_dim, s_dim, width=200):
+    def __init__(self, x_dim: int, y_dim: int, z_dim: int, r_dim: int, s_dim: int, width: int = 200):
         super(NeuralProcess, self).__init__()
         self.det_encoder = self.build_encoder(x_dim + y_dim, r_dim, width)
         self.stoch_encoder = self.build_encoder(x_dim + y_dim, r_dim, width)
@@ -27,19 +27,19 @@ class NeuralProcess(nn.Module):
         y = self.decoder(torch.cat((x_target.reshape(-1,1), z.repeat(num_target_points, 1), r.repeat(num_target_points, 1)), dim=1))
         return y
 
-    def build_encoder(self, in_dim, out_dim, width):
+    def build_encoder(self, in_dim: int, out_dim: int, width: int):
         return self.build_simple_network(in_dim, width, out_dim)
 
     def build_aggregator(self):
         return self.mean_aggregator
 
-    def mean_aggregator(self, x):
+    def mean_aggregator(self, x: torch.Tensor):
         return torch.mean(x, dim=0)
 
-    def build_decoder(self, latent_dim, out_dim, width):
+    def build_decoder(self, latent_dim: int, out_dim: int, width: int):
         return self.build_simple_network(latent_dim, width, out_dim)
         
-    def build_simple_network(self, in_dim, hid_dim, out_dim):
+    def build_simple_network(self, in_dim: int, hid_dim: int, out_dim: int):
         return nn.Sequential(
             nn.Linear(in_dim, hid_dim),
             nn.ReLU(),
