@@ -15,23 +15,26 @@ class NeuralProcess(nn.Module):
         s = self.stoch_encoder(data)
         s = self.aggregator(s)
         z_mu = self.mu_layer(s)
-        z_logvar = self.sigma_layer(s)
+        z_logvar = self.logvar_layer(s)
         return z_mu, z_logvar
 
     def forward(self, data_context: torch.Tensor, x_target: torch.Tensor):
         r = self.det_encoder(data_context)
         r = self.aggregator(r)
-        z_mu, z_logvar = self.get_mu_sigma(data_context)
-        z = torch.randn(z_mu.size) * torch.exp(0.5 * z_logvar) + z_mu
+        z_mu, z_logvar = self.get_mu_logvar(data_context)
+        z = torch.randn(z_mu.size()) * torch.exp(0.5 * z_logvar) + z_mu
         num_target_points = x_target.shape[0]
-        y = self.decoder(torch.cat((x_target, z.repeat(num_target_points), r.repeat(num_target_points))))
+        y = self.decoder(torch.cat((x_target.reshape(-1,1), z.repeat(num_target_points, 1), r.repeat(num_target_points, 1)), dim=1))
         return y
 
     def build_encoder(self, in_dim, out_dim, width):
         return self.build_simple_network(in_dim, width, out_dim)
 
     def build_aggregator(self):
-        return torch.mean
+        return self.mean_aggregator
+
+    def mean_aggregator(self, x):
+        return torch.mean(x, dim=0)
 
     def build_decoder(self, latent_dim, out_dim, width):
         return self.build_simple_network(latent_dim, width, out_dim)
@@ -46,14 +49,14 @@ class NeuralProcess(nn.Module):
         )
 
 def NeuralProcessLoss(neural_process: NeuralProcess, data_context: torch.Tensor, data_target: torch.Tensor):
-    y_target, x_target = data_target[:,1]
+    x_target, y_target = data_target[:, 0], data_target[:, 1].reshape(-1, 1)
     mu_c, logvar_c = neural_process.get_mu_logvar(data_context)
     mu_t, logvar_t = neural_process.get_mu_logvar(data_target)
     d_kl = .5 * (
         torch.sum(torch.exp(logvar_t - logvar_c) - 1)
-        + (mu_t - mu_c)**2 / torch.exp(logvar_c) 
-        + torch.log(torch.exp(torch.sum(logvar_c)) / torch.exp(torch.sum(logvar_t)))
+        + torch.dot((mu_t - mu_c) / torch.exp(logvar_c),(mu_t - mu_c))
+        + (torch.sum(logvar_c) - torch.sum(logvar_t))
         )
     y_pred = neural_process(data_context, x_target)
-    ll_fit = nn.MSELoss(y_target, y_pred)
+    ll_fit = torch.nn.functional.mse_loss(y_target, y_pred)
     return ll_fit + d_kl
