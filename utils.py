@@ -1,3 +1,7 @@
+import numpy as np
+from sklearn import gaussian_process
+from sklearn.model_selection import train_test_split
+
 class GPDataGenerator():
     
     def __init__(self, num_funcs=30, seed=1234):
