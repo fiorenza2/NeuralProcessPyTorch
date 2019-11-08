@@ -1,19 +1,6 @@
 import torch
 import torch.nn as nn
-
-class DeterministicEncoder(nn.Module):
-    def __init__(self, x_dim, y_dim, r_dim=64, network: nn.Module=None):
-        super(DeterministicEncoder, self).__init__()
-        if network:
-            self.network = network
-        else:
-            self.network = self._build_default_network(x_dim + y_dim, r_dim)
-
-    def _build_default_network(self, in_dim, out_dim):
-        
-
-
-
+from .model import *
 
 class NeuralProcess(nn.Module):
     def __init__(self, x_dim: int, y_dim: int, z_dim: int, r_dim: int, s_dim: int, width: int = 200):
@@ -61,16 +48,3 @@ class NeuralProcess(nn.Module):
             nn.ReLU(),
             nn.Linear(hid_dim, out_dim)
         )
-
-def NeuralProcessLoss(neural_process: NeuralProcess, data_context: torch.Tensor, data_target: torch.Tensor):
-    x_target, y_target = data_target[:, 0], data_target[:, 1].reshape(-1, 1)
-    mu_c, logvar_c = neural_process.get_mu_logvar(data_context)
-    mu_t, logvar_t = neural_process.get_mu_logvar(data_target)
-    d_kl = .5 * (
-        torch.sum(torch.exp(logvar_t - logvar_c) - 1)
-        + torch.dot((mu_t - mu_c) / torch.exp(logvar_c),(mu_t - mu_c))
-        + (torch.sum(logvar_c) - torch.sum(logvar_t))
-        )
-    y_pred = neural_process(data_context, x_target)
-    ll_fit = torch.nn.functional.mse_loss(y_target, y_pred)
-    return ll_fit + d_kl
