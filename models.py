@@ -10,6 +10,17 @@ class DeterministicEncoder(nn.Module):
             self.network = self._build_default_network(x_dim + y_dim, r_dim)
 
     def _build_default_network(self, in_dim, out_dim):
+        h_dim = 128
+        self.layer_1 = nn.Linear(in_dim, h_dim)
+        self.hidden1 = nn.ModuleList()
+        for _ in range(3):
+            self.hidden.append(nn.Linear(h_dim, h_dim))
+        self.hidden2 = nn.Linear(h_dim, 96)
+        self.loc = nn.Linear(96, 64)
+        self.scale = nn.Linear(96, 64)
+    
+    def forward(self, x, y):
+        data = torch.cat()
         
 
 
