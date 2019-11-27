@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 
+
 class DeterministicEncoder(nn.Module):
     def __init__(self, x_dim, y_dim, r_dim=64):
         super(DeterministicEncoder, self).__init__()
